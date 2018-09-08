@@ -72,10 +72,6 @@ int main(int argc, char** argv) {
   // and plan for.
   moveit::planning_interface::MoveGroupInterface move_group(PLANNING_GROUP);
 
-   //move_group.setPlannerId("RRTstarkConfigDefault");
- move_group.setPlannerId("InformedRRTstarConfigDefault");
- move_group.setPlannerId("RRTConnectkConfigDefault");
-
   // We will use the :planning_scene_interface:`PlanningSceneInterface`
   // class to add and remove collision objects in our "virtual world" scene
   moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
@@ -287,7 +283,6 @@ int main(int argc, char** argv) {
   target_pose1.position.y = cabin_y - 0;
   target_pose1.position.z = cabin_z + 0.4;
   move_group.setPoseTarget(target_pose1);
-//  move_group.setPoseTarget(*move_group.getRandomPose());
   success = (move_group.plan(my_plan) ==
              moveit::planning_interface::MoveItErrorCode::SUCCESS);
 

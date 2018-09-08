@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="move_group_interface_ur3" pkg="moveit_tutorials" type="move_group_interface_ur3" respawn="false" output="screen">
+  </node>
+
+</launch>

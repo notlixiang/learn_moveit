@@ -1,0 +1,6 @@
+add_executable(motion_planning_api_tutorial src/motion_planning_api_tutorial.cpp)
+target_link_libraries(motion_planning_api_tutorial ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+install(TARGETS motion_planning_api_tutorial DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+add_executable(motion_planning_api_ur3 src/motion_planning_api_ur3.cpp)
+target_link_libraries(motion_planning_api_ur3 ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+install(TARGETS motion_planning_api_ur3 DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

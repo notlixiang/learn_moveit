@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- send Panda urdf to parameter server -->
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find ur_description)/urdf/ur3_joint_limited_robot.urdf.xacro'" />
+
+  <include file="$(find ur3_moveit_config)/launch/planning_context.launch"/>
+
+  <node name="planning_scene_ur3" pkg="moveit_tutorials" type="planning_scene_ur3" respawn="false" output="screen">
+    <rosparam command="load" file="$(find ur3_moveit_config)/config/kinematics.yaml"/>
+  </node>
+</launch>

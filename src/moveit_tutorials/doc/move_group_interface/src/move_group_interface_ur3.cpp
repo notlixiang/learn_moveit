@@ -50,7 +50,7 @@
 #include <moveit_visual_tools/moveit_visual_tools.h>
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "move_group_interface_ur5");
+  ros::init(argc, argv, "move_group_interface_ur3");
   ros::NodeHandle node_handle;
   ros::AsyncSpinner spinner(1);
   spinner.start();
@@ -71,10 +71,6 @@ int main(int argc, char** argv) {
   // setup using just the name of the planning group you would like to control
   // and plan for.
   moveit::planning_interface::MoveGroupInterface move_group(PLANNING_GROUP);
-
-   //move_group.setPlannerId("RRTstarkConfigDefault");
- move_group.setPlannerId("InformedRRTstarConfigDefault");
- move_group.setPlannerId("RRTConnectkConfigDefault");
 
   // We will use the :planning_scene_interface:`PlanningSceneInterface`
   // class to add and remove collision objects in our "virtual world" scene
@@ -149,7 +145,7 @@ int main(int argc, char** argv) {
   // define a cabin shape
   std::string cabin_dir =
       "file:://home/null/ros_ws/learn_moveit/src/moveit_tutorials/doc/"
-      "move_group_interface/collision/huojia.stl";
+      "move_group_interface/collision/cabin4.stl";
   shapes::Mesh* m = shapes::createMeshFromResource(cabin_dir);
   shape_msgs::Mesh cabin_mesh;
   shapes::ShapeMsg cabin_mesh_msg;
@@ -157,13 +153,13 @@ int main(int argc, char** argv) {
   cabin_mesh = boost::get<shape_msgs::Mesh>(cabin_mesh_msg);
 
   // cabin position
-  float cabin_x = 0.4;
+  float cabin_x = 0.2;
   float cabin_y = 0;
-  float cabin_z = -0.6;
+  float cabin_z = -0.3;
 
   geometry_msgs::Pose cabin_pose;
-  cabin_pose.orientation.w =  0.707;
-  cabin_pose.orientation.z =  0.707;
+  cabin_pose.orientation.w = 0;  // 0.707;
+  cabin_pose.orientation.z = 1;  // 0.707;
   cabin_pose.position.x = cabin_x;
   cabin_pose.position.y = cabin_y;
   cabin_pose.position.z = cabin_z;
@@ -187,8 +183,8 @@ int main(int argc, char** argv) {
   shape_msgs::SolidPrimitive primitive;
   primitive.type = primitive.BOX;
   primitive.dimensions.resize(3);
-  primitive.dimensions[0] = 2;
-  primitive.dimensions[1] = 2;
+  primitive.dimensions[0] = 5;
+  primitive.dimensions[1] = 5;
   primitive.dimensions[2] = 0.01;
 
   // Define a pose for the box (specified relative to frame_id)
@@ -196,49 +192,17 @@ int main(int argc, char** argv) {
   box_pose.orientation.w = 1.0;
   box_pose.position.x = 0;
   box_pose.position.y = 0;
-  box_pose.position.z = -0.6;
+  box_pose.position.z = -0.1;
 
   collision_object_floor.primitives.push_back(primitive);
   collision_object_floor.primitive_poses.push_back(box_pose);
   collision_object_floor.operation = collision_object_floor.ADD;
 
-//  std::vector<moveit_msgs::CollisionObject> collision_objects2;
-//  collision_objects2.push_back(collision_object_floor);
-  collision_objects.push_back(collision_object_floor);
+  std::vector<moveit_msgs::CollisionObject> collision_objects2;
+  collision_objects2.push_back(collision_object_floor);
   ROS_INFO("add floor into the world.");
-
-  // Define a collision object ROS message.
-  moveit_msgs::CollisionObject collision_object_wall;
-  collision_object_wall.header.frame_id = move_group.getPlanningFrame();
-
-  // The id of the object is used to identify it.
-  collision_object_wall.id = "wall";
-
-  // Define a box to add to the world.
-//  shape_msgs::SolidPrimitive primitive;
-  primitive.type = primitive.BOX;
-  primitive.dimensions.resize(3);
-  primitive.dimensions[0] = 0.01;
-  primitive.dimensions[1] = 2;
-  primitive.dimensions[2] = 1.5;
-
-  // Define a pose for the box (specified relative to frame_id)
-//  geometry_msgs::Pose box_pose;
-  box_pose.orientation.w = 1.0;
-  box_pose.position.x = -0.4;
-  box_pose.position.y = 0;
-  box_pose.position.z = 0.2;
-
-  collision_object_wall.primitives.push_back(primitive);
-  collision_object_wall.primitive_poses.push_back(box_pose);
-  collision_object_wall.operation = collision_object_wall.ADD;
-
-//  std::vector<moveit_msgs::CollisionObject> collision_objects2;
-  collision_objects.push_back(collision_object_wall);
-  ROS_INFO("add wall into the world.");
-
   planning_scene_interface.addCollisionObjects(collision_objects);
-//  planning_scene_interface.addCollisionObjects(collision_objects2);
+  planning_scene_interface.addCollisionObjects(collision_objects2);
   ros::Duration(1.0).sleep();
 
   // Start the demo
@@ -287,7 +251,6 @@ int main(int argc, char** argv) {
   target_pose1.position.y = cabin_y - 0;
   target_pose1.position.z = cabin_z + 0.4;
   move_group.setPoseTarget(target_pose1);
-//  move_group.setPoseTarget(*move_group.getRandomPose());
   success = (move_group.plan(my_plan) ==
              moveit::planning_interface::MoveItErrorCode::SUCCESS);
 

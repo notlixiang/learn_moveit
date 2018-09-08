@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="sim" default="false" />
+  <arg name="limited" default="true"/>
+  <arg name="debug" default="false" />
+
+
+  <include file="$(find ur3_moveit_config)/launch/ur3_moveit_planning_execution.launch">
+    <arg name="sim" value="$(arg sim)"/>
+    <arg name="limited" value="$(arg limited)"/>
+  <arg name="debug" default="$(arg debug)" />
+  </include>
+
+  <include file="$(find ur3_moveit_config)/launch/moveit_rviz.launch">
+    <arg name="config" value="true"/>
+    <!-- <arg name="limited" value="$(arg limited)"/> -->
+    <arg name="debug" value="$(arg debug)"/>
+  </include>
+
+</launch>
+
