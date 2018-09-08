@@ -1,0 +1,5 @@
+<launch>
+
+<node name="planning_in_cabin" pkg="ur5_planning" type="planning_in_cabin" respawn="false" output="screen">
+</node>
+</launch>
