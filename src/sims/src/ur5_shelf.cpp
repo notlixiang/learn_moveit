@@ -72,9 +72,10 @@ int main(int argc, char** argv) {
   // and plan for.
   moveit::planning_interface::MoveGroupInterface move_group(PLANNING_GROUP);
 
-   //move_group.setPlannerId("RRTstarkConfigDefault");
- move_group.setPlannerId("InformedRRTstarConfigDefault");
- move_group.setPlannerId("RRTConnectkConfigDefault");
+  move_group.setPlannerId("RRTstarkConfigDefault");
+  move_group.setPlanningTime(1);
+  // move_group.setPlannerId("InformedRRTstarConfigDefault");
+  // move_group.setPlannerId("RRTConnectkConfigDefault");
 
   // We will use the :planning_scene_interface:`PlanningSceneInterface`
   // class to add and remove collision objects in our "virtual world" scene
@@ -139,8 +140,7 @@ int main(int argc, char** argv) {
                                          joint_group_positions);
 
   ROS_INFO_NAMED("tutorial", "now add the cabin");
-  visual_tools.prompt(
-      "Press 'next' to start");
+  visual_tools.prompt("Press 'next' to start");
   // define a collision object
   moveit_msgs::CollisionObject collision_object_cabin;
   collision_object_cabin.header.frame_id = move_group.getPlanningFrame();
@@ -162,8 +162,8 @@ int main(int argc, char** argv) {
   float cabin_z = -0.6;
 
   geometry_msgs::Pose cabin_pose;
-  cabin_pose.orientation.w =  0.707;
-  cabin_pose.orientation.z =  0.707;
+  cabin_pose.orientation.w = 0.707;
+  cabin_pose.orientation.z = 0.707;
   cabin_pose.position.x = cabin_x;
   cabin_pose.position.y = cabin_y;
   cabin_pose.position.z = cabin_z;
@@ -202,8 +202,8 @@ int main(int argc, char** argv) {
   collision_object_floor.primitive_poses.push_back(box_pose);
   collision_object_floor.operation = collision_object_floor.ADD;
 
-//  std::vector<moveit_msgs::CollisionObject> collision_objects2;
-//  collision_objects2.push_back(collision_object_floor);
+  //  std::vector<moveit_msgs::CollisionObject> collision_objects2;
+  //  collision_objects2.push_back(collision_object_floor);
   collision_objects.push_back(collision_object_floor);
   ROS_INFO("add floor into the world.");
 
@@ -215,7 +215,7 @@ int main(int argc, char** argv) {
   collision_object_wall.id = "wall";
 
   // Define a box to add to the world.
-//  shape_msgs::SolidPrimitive primitive;
+  //  shape_msgs::SolidPrimitive primitive;
   primitive.type = primitive.BOX;
   primitive.dimensions.resize(3);
   primitive.dimensions[0] = 0.01;
@@ -223,7 +223,7 @@ int main(int argc, char** argv) {
   primitive.dimensions[2] = 1.5;
 
   // Define a pose for the box (specified relative to frame_id)
-//  geometry_msgs::Pose box_pose;
+  //  geometry_msgs::Pose box_pose;
   box_pose.orientation.w = 1.0;
   box_pose.position.x = -0.4;
   box_pose.position.y = 0;
@@ -233,32 +233,33 @@ int main(int argc, char** argv) {
   collision_object_wall.primitive_poses.push_back(box_pose);
   collision_object_wall.operation = collision_object_wall.ADD;
 
-//  std::vector<moveit_msgs::CollisionObject> collision_objects2;
+  //  std::vector<moveit_msgs::CollisionObject> collision_objects2;
   collision_objects.push_back(collision_object_wall);
   ROS_INFO("add wall into the world.");
 
   planning_scene_interface.addCollisionObjects(collision_objects);
-//  planning_scene_interface.addCollisionObjects(collision_objects2);
+  //  planning_scene_interface.addCollisionObjects(collision_objects2);
   ros::Duration(1.0).sleep();
 
   // Start the demo
   // ^^^^^^^^^^^^^^^^^^^^^^^^^
-//  visual_tools.prompt(
-//      "Press 'next' in the RvizVisualToolsGui window to start the demo");
+  //  visual_tools.prompt(
+  //      "Press 'next' in the RvizVisualToolsGui window to start the demo");
 
   // Planning to a Pose goal
   // ^^^^^^^^^^^^^^^^^^^^^^^
   // We can plan a motion for this group to a desired pose for the
   // end-effector.
 
+  move_group.setStartState(*move_group.getCurrentState());
   geometry_msgs::Pose target_pose1;
   target_pose1.orientation.x = 0.5;
   target_pose1.orientation.y = 0.5;
   target_pose1.orientation.z = -0.5;
   target_pose1.orientation.w = 0.5;
-  target_pose1.position.x = 0.4;
-  target_pose1.position.y = 0.0;
-  target_pose1.position.z = 0.1;
+  target_pose1.position.x = cabin_x + 0.0;
+  target_pose1.position.y = cabin_y - 0;
+  target_pose1.position.z = cabin_z + 0.4;
   move_group.setPoseTarget(target_pose1);
 
   // Now, we call the planner to compute the plan and visualize it.
@@ -276,71 +277,74 @@ int main(int argc, char** argv) {
   if (success) {
     move_group.execute(my_plan);
   }
-
+  while (true) {
+    move_group.setStartState(*move_group.getCurrentState());
+    move_group.setRandomTarget();
+  }
   // move test
-  move_group.setStartState(*move_group.getCurrentState());
-  target_pose1.orientation.x = 0.5;
-  target_pose1.orientation.y = 0.5;
-  target_pose1.orientation.z = -0.5;
-  target_pose1.orientation.w = 0.5;
-  target_pose1.position.x = cabin_x + 0.1;
-  target_pose1.position.y = cabin_y - 0;
-  target_pose1.position.z = cabin_z + 0.4;
-  move_group.setPoseTarget(target_pose1);
-//  move_group.setPoseTarget(*move_group.getRandomPose());
-  success = (move_group.plan(my_plan) ==
-             moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  //  move_group.setStartState(*move_group.getCurrentState());
+  //  target_pose1.orientation.x = 0.5;
+  //  target_pose1.orientation.y = 0.5;
+  //  target_pose1.orientation.z = -0.5;
+  //  target_pose1.orientation.w = 0.5;
+  //  target_pose1.position.x = cabin_x + 0.1;
+  //  target_pose1.position.y = cabin_y - 0;
+  //  target_pose1.position.z = cabin_z + 0.4;
+  //  move_group.setPoseTarget(target_pose1);
+  ////  move_group.setPoseTarget(*move_group.getRandomPose());
+  //  success = (move_group.plan(my_plan) ==
+  //             moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
-  ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s",
-                 success ? "SUCCESSED" : "FAILED");
-  visual_tools.trigger();
-  visual_tools.prompt("Press 'next' to execute plan result");
+  //  ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s",
+  //                 success ? "SUCCESSED" : "FAILED");
+  //  visual_tools.trigger();
+  //  visual_tools.prompt("Press 'next' to execute plan result");
 
-  if (success) {
-    move_group.execute(my_plan);
-  }
+  //  if (success) {
+  //    move_group.execute(my_plan);
+  //  }
 
-  move_group.setStartState(*move_group.getCurrentState());
-  target_pose1.orientation.x = 0.5;
-  target_pose1.orientation.y = 0.5;
-  target_pose1.orientation.z = -0.5;
-  target_pose1.orientation.w = 0.5;
-  target_pose1.position.x = cabin_x   + 0.1;
-  target_pose1.position.y = cabin_y - 0;
-  target_pose1.position.z = cabin_z + 0.45;
-  move_group.setPoseTarget(target_pose1);
-  success = (move_group.plan(my_plan) ==
-             moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  //  move_group.setStartState(*move_group.getCurrentState());
+  //  target_pose1.orientation.x = 0.5;
+  //  target_pose1.orientation.y = 0.5;
+  //  target_pose1.orientation.z = -0.5;
+  //  target_pose1.orientation.w = 0.5;
+  //  target_pose1.position.x = cabin_x   + 0.1;
+  //  target_pose1.position.y = cabin_y - 0;
+  //  target_pose1.position.z = cabin_z + 0.5;
+  //  move_group.setPoseTarget(target_pose1);
+  //  success = (move_group.plan(my_plan) ==
+  //             moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
-  ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s",
-                 success ? "SUCCESSED" : "FAILED");
-  visual_tools.trigger();
-  visual_tools.prompt("Press 'next' to execute plan result");
+  //  ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s",
+  //                 success ? "SUCCESSED" : "FAILED");
+  //  visual_tools.trigger();
+  //  visual_tools.prompt("Press 'next' to execute plan result");
 
-  if (success) {
-    move_group.execute(my_plan);
-  }
+  //  if (success) {
+  //    move_group.execute(my_plan);
+  //  }
 
-  move_group.setStartState(*move_group.getCurrentState());
-  target_pose1.orientation.x = 0.5;
-  target_pose1.orientation.y = 0.5;
-  target_pose1.orientation.z = -0.5;
-  target_pose1.orientation.w = 0.5;
-  target_pose1.position.x = cabin_x   + 0.1;
-  target_pose1.position.y = cabin_y - 0;
-  target_pose1.position.z = cabin_z + 0.5;
-  move_group.setPoseTarget(target_pose1);
-  success = (move_group.plan(my_plan) ==
-             moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  //  move_group.setStartState(*move_group.getCurrentState());
+  //  target_pose1.orientation.x = 0.5;
+  //  target_pose1.orientation.y = 0.5;
+  //  target_pose1.orientation.z = -0.5;
+  //  target_pose1.orientation.w = 0.5;
+  //  target_pose1.position.x = cabin_x   + 0.1;
+  //  target_pose1.position.y = cabin_y - 0;
+  //  target_pose1.position.z = cabin_z + 0.8;
+  //  move_group.setPoseTarget(target_pose1);
+  //  success = (move_group.plan(my_plan) ==
+  //             moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
-  ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s",
-                 success ? "SUCCESSED" : "FAILED");
-  visual_tools.trigger();
-  visual_tools.prompt("Press 'next' to execute plan result");
+  //  ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s",
+  //                 success ? "SUCCESSED" : "FAILED");
+  //  visual_tools.trigger();
+  //  visual_tools.prompt("Press 'next' to execute plan result");
 
-  if (success) {
-    move_group.execute(my_plan);
-  }
+  //  if (success) {
+  //    move_group.execute(my_plan);
+  //  }
 
   // END_TUTORIAL
 
