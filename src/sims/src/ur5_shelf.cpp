@@ -277,9 +277,27 @@ int main(int argc, char** argv) {
   if (success) {
     move_group.execute(my_plan);
   }
+  int ran_cnt=0;
   while (true) {
+      ROS_INFO("Generating...   %d",ran_cnt++);
     move_group.setStartState(*move_group.getCurrentState());
     move_group.setRandomTarget();
+    move_group.setPlanningTime(5);
+    bool success_find = (move_group.plan(my_plan) ==
+                    moveit::planning_interface::MoveItErrorCode::SUCCESS);
+    if(success_find){
+        move_group.setPlanningTime(25);
+        bool success_optimize = (move_group.plan(my_plan) ==
+                        moveit::planning_interface::MoveItErrorCode::SUCCESS);
+        if (success_optimize) {
+          move_group.execute(my_plan);
+          my_plan.trajectory_.joint_trajectory.points[0];
+        }else{
+            continue;
+        }
+    }else{
+        continue;
+    }
   }
   // move test
   //  move_group.setStartState(*move_group.getCurrentState());
