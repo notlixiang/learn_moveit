@@ -371,6 +371,9 @@ int main(int argc, char** argv) {
         ROS_INFO("trajectory size   %ld",
                  my_plan.trajectory_.joint_trajectory.points.size());
 
+std::vector<std::string> ObjectIds=scene->getWorld()->getObjectIds();
+
+ROS_INFO("ObjectIds size   %ld",ObjectIds.size());
         robot_state::RobotState& current_state =
             planning_scene.getCurrentStateNonConst();
 
@@ -380,25 +383,34 @@ int main(int argc, char** argv) {
         current_state.setJointGroupPositions(joint_model_group, joint_values);
         current_state.printStatePositions();
 
+        robot_state::RobotState state(scene->getRobotModel());
+        state.setJointGroupPositions(joint_model_group, joint_values);
+        scene->setCurrentState(state);
+        current_state = planning_scene.getCurrentStateNonConst();
+        current_state.printStatePositions();
+        bool flag = scene->isStateValid(current_state, "manipulator");
+        ROS_INFO("isStateValid ? %s",
+                       flag ? "yes" : "no");
+
         collision_detection::AllowedCollisionMatrix acm =
             planning_scene.getAllowedCollisionMatrix();
-        acm.print(std::cout);
+//        acm.print(std::cout);
         collision_detection::CollisionResult::ContactMap::const_iterator it2;
         for (it2 = collision_result.contacts.begin();
              it2 != collision_result.contacts.end(); ++it2) {
           acm.setEntry(it2->first.first, it2->first.second, true);
         }
-        acm.print(std::cout);
+//        acm.print(std::cout);
         collision_result.clear();
 
-        robot_state::RobotState copied_state = planning_scene.getCurrentState();
-        copied_state.printStatePositions();
+//        robot_state::RobotState copied_state = planning_scene.getCurrentState();
+//        copied_state.printStatePositions();
 
-        planning_scene.checkSelfCollision(collision_request, collision_result,
-                                          copied_state, acm);
-        ROS_INFO_STREAM("Test 6: Current state is "
-                        << (collision_result.collision ? "in" : "not in")
-                        << " self collision");
+//        planning_scene.checkSelfCollision(collision_request, collision_result,
+//                                          copied_state, acm);
+//        ROS_INFO_STREAM("Test 6: Current state is "
+//                        << (collision_result.collision ? "in" : "not in")
+//                        << " self collision");
 
       } else {
         continue;
