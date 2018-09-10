@@ -33,6 +33,14 @@
  *********************************************************************/
 
 /* Author: Sachin Chitta, Dave Coleman, Mike Lautman */
+#include <ros/ros.h>
+
+#include <moveit/planning_scene/planning_scene.h>
+#include <moveit/robot_model_loader/robot_model_loader.h>
+
+#include <eigen_conversions/eigen_msg.h>
+#include <moveit/kinematic_constraints/utils.h>
+
 #include <geometric_shapes/mesh_operations.h>
 #include <geometric_shapes/shape_messages.h>
 #include <geometric_shapes/shape_operations.h>
@@ -76,6 +84,12 @@ int main(int argc, char** argv) {
   move_group.setPlanningTime(1);
   // move_group.setPlannerId("InformedRRTstarConfigDefault");
   // move_group.setPlannerId("RRTConnectkConfigDefault");
+
+  robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
+  robot_model::RobotModelPtr kinematic_model = robot_model_loader.getModel();
+  planning_scene::PlanningScene planning_scene(kinematic_model);
+  collision_detection::CollisionRequest collision_request;
+  collision_detection::CollisionResult collision_result;
 
   // We will use the :planning_scene_interface:`PlanningSceneInterface`
   // class to add and remove collision objects in our "virtual world" scene
@@ -237,7 +251,38 @@ int main(int argc, char** argv) {
   collision_objects.push_back(collision_object_wall);
   ROS_INFO("add wall into the world.");
 
+  // Define a collision object ROS message.
+  moveit_msgs::CollisionObject collision_object_base;
+  collision_object_base.header.frame_id = move_group.getPlanningFrame();
+
+  // The id of the object is used to identify it.
+  collision_object_base.id = "base";
+
+  // Define a box to add to the world.
+  //  shape_msgs::SolidPrimitive primitive;
+  primitive.type = primitive.BOX;
+  primitive.dimensions.resize(3);
+  primitive.dimensions[0] = 0.5;
+  primitive.dimensions[1] = 0.5;
+  primitive.dimensions[2] = 0.6;
+
+  // Define a pose for the box (specified relative to frame_id)
+  //  geometry_msgs::Pose box_pose;
+  box_pose.orientation.w = 1.0;
+  box_pose.position.x = 0;
+  box_pose.position.y = 0;
+  box_pose.position.z = -0.3;
+
+  collision_object_base.primitives.push_back(primitive);
+  collision_object_base.primitive_poses.push_back(box_pose);
+  collision_object_base.operation = collision_object_base.ADD;
+
+  //  std::vector<moveit_msgs::CollisionObject> collision_objects2;
+  collision_objects.push_back(collision_object_base);
+  ROS_INFO("add base into the world.");
+
   planning_scene_interface.addCollisionObjects(collision_objects);
+//  planning_scene_interface.applyCollisionObjects(collision_objects);
   //  planning_scene_interface.addCollisionObjects(collision_objects2);
   ros::Duration(1.0).sleep();
 
@@ -277,26 +322,60 @@ int main(int argc, char** argv) {
   if (success) {
     move_group.execute(my_plan);
   }
-  int ran_cnt=0;
+
+  int ran_cnt = 0;
   while (true) {
-      ROS_INFO("Generating...   %d",ran_cnt++);
+    ROS_INFO("Generating...   %d", ran_cnt++);
     move_group.setStartState(*move_group.getCurrentState());
     move_group.setRandomTarget();
-    move_group.setPlanningTime(5);
+    //    move_group.getRandomPose()
+    move_group.setPlanningTime(1);
     bool success_find = (move_group.plan(my_plan) ==
-                    moveit::planning_interface::MoveItErrorCode::SUCCESS);
-    if(success_find){
-        move_group.setPlanningTime(25);
-        bool success_optimize = (move_group.plan(my_plan) ==
-                        moveit::planning_interface::MoveItErrorCode::SUCCESS);
-        if (success_optimize) {
-          move_group.execute(my_plan);
-          my_plan.trajectory_.joint_trajectory.points[0];
-        }else{
-            continue;
+                         moveit::planning_interface::MoveItErrorCode::SUCCESS);
+    if (success_find) {
+      move_group.setPlanningTime(2);
+      bool success_optimize =
+          (move_group.plan(my_plan) ==
+           moveit::planning_interface::MoveItErrorCode::SUCCESS);
+      if (success_optimize) {
+        move_group.execute(my_plan);
+        ROS_INFO("trajectory size   %ld",
+                 my_plan.trajectory_.joint_trajectory.points.size());
+
+        robot_state::RobotState& current_state =
+            planning_scene.getCurrentStateNonConst();
+
+        std::vector<double> joint_values = {1.57, 0.0, 0.0, 0.0, 0.0, 0.0};
+        const robot_model::JointModelGroup* joint_model_group =
+            current_state.getJointModelGroup("manipulator");
+        current_state.setJointGroupPositions(joint_model_group, joint_values);
+        current_state.printStatePositions();
+
+        collision_detection::AllowedCollisionMatrix acm =
+            planning_scene.getAllowedCollisionMatrix();
+        acm.print(std::cout);
+        collision_detection::CollisionResult::ContactMap::const_iterator it2;
+        for (it2 = collision_result.contacts.begin();
+             it2 != collision_result.contacts.end(); ++it2) {
+          acm.setEntry(it2->first.first, it2->first.second, true);
         }
-    }else{
+        acm.print(std::cout);
+        collision_result.clear();
+
+        robot_state::RobotState copied_state = planning_scene.getCurrentState();
+        copied_state.printStatePositions();
+
+        planning_scene.checkSelfCollision(collision_request, collision_result,
+                                          copied_state, acm);
+        ROS_INFO_STREAM("Test 6: Current state is "
+                        << (collision_result.collision ? "in" : "not in")
+                        << " self collision");
+
+      } else {
         continue;
+      }
+    } else {
+      continue;
     }
   }
   // move test
