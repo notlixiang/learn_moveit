@@ -63,18 +63,16 @@
 
 #include <moveit_visual_tools/moveit_visual_tools.h>
 
-
 std::vector<std::string> joint_names;
 std::vector<double> joint_positions;
 
-void statesMessageReceived(const sensor_msgs::JointState current_state)
-{
-    joint_names.clear();
-    joint_positions.clear();
-    for(int i = 0; i < 19; i++){
-        joint_names.push_back(current_state.name[i]);
-        joint_positions.push_back(current_state.position[i]);
-    }
+void statesMessageReceived(const sensor_msgs::JointState current_state) {
+  joint_names.clear();
+  joint_positions.clear();
+  for (int i = 0; i < 19; i++) {
+    joint_names.push_back(current_state.name[i]);
+    joint_positions.push_back(current_state.position[i]);
+  }
 }
 
 int main(int argc, char** argv) {
@@ -338,25 +336,35 @@ int main(int argc, char** argv) {
   }
 
   planning_scene_monitor::PlanningSceneMonitorPtr monitor_ptr =
-      std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
+      std::make_shared<planning_scene_monitor::PlanningSceneMonitor>(
+          "robot_description");
+  //  planning_scene_monitor::PlanningSceneMonitorPtr monitor_ptr =
+  //  planning_scene_monitor::PlanningSceneMonitorPtr(
+  //      new planning_scene_monitor::PlanningSceneMonitor("robot_description",
+  //      tf, "name"));
+
   monitor_ptr->requestPlanningSceneState("get_planning_scene");
   planning_scene_monitor::LockedPlanningSceneRW ps(monitor_ptr);
   ps->getCurrentStateNonConst().update();
   planning_scene::PlanningScenePtr scene = ps->diff();
   scene->decoupleParent();
 
-  robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
-  robot_model::RobotModelPtr kinematic_model = robot_model_loader.getModel();
-  planning_scene::PlanningScene planning_scene(kinematic_model);
+  //  robot_model_loader::RobotModelLoader
+  //  robot_model_loader("robot_description");
+  //  robot_model::RobotModelPtr kinematic_model =
+  //  robot_model_loader.getModel();
+  //  planning_scene::PlanningScene planning_scene(kinematic_model);
 
-  collision_detection::CollisionRequest collision_request;
-  collision_detection::CollisionResult collision_result;
+  //  collision_detection::CollisionRequest collision_request;
+  //  collision_detection::CollisionResult collision_result;
 
   int ran_cnt = 0;
+  int gen_cnt = 0;
   while (true) {
-    ROS_INFO("Generating...   %d", ran_cnt++);
+    ROS_INFO("Randomzing...   %d", ran_cnt++);
     move_group.setStartState(*move_group.getCurrentState());
     move_group.setRandomTarget();
+    //    robot_state::RobotState& move_group.getJointValueTarget();
     //    move_group.getRandomPose()
     move_group.setPlanningTime(1);
     bool success_find = (move_group.plan(my_plan) ==
@@ -368,51 +376,58 @@ int main(int argc, char** argv) {
            moveit::planning_interface::MoveItErrorCode::SUCCESS);
       if (success_optimize) {
         move_group.execute(my_plan);
+
         ROS_INFO("trajectory size   %ld",
                  my_plan.trajectory_.joint_trajectory.points.size());
 
-std::vector<std::string> ObjectIds=scene->getWorld()->getObjectIds();
+        std::vector<std::string> ObjectIds = scene->getWorld()->getObjectIds();
 
-ROS_INFO("ObjectIds size   %ld",ObjectIds.size());
-ROS_INFO("ObjectIds %s %s %s %s",ObjectIds[0].c_str(),ObjectIds[1].c_str(),ObjectIds[2].c_str(),ObjectIds[3].c_str());
+        ROS_INFO("ObjectIds size   %ld", ObjectIds.size());
+        ROS_INFO("ObjectIds %s %s %s %s", ObjectIds[0].c_str(),
+                 ObjectIds[1].c_str(), ObjectIds[2].c_str(),
+                 ObjectIds[3].c_str());
 
-        robot_state::RobotState& current_state =
-            planning_scene.getCurrentStateNonConst();
+        //        robot_state::RobotState& current_state =
+        //            planning_scene.getCurrentStateNonConst();
 
-        std::vector<double> joint_values = {1.57, 0.0, 0.0, 0.0, 0.0, 0.0};
-        const robot_model::JointModelGroup* joint_model_group =
-            current_state.getJointModelGroup("manipulator");
-        current_state.setJointGroupPositions(joint_model_group, joint_values);
-        current_state.printStatePositions();
+        std::vector<double> joint_values = {0, 0.0, 0, 0.0, 0.0, 0.0};
+        //        const robot_model::JointModelGroup* joint_model_group =
+        //            current_state.getJointModelGroup("manipulator");
+        //        current_state.setJointGroupPositions(joint_model_group,
+        //        joint_values);
+        //        current_state.printStatePositions();
 
         robot_state::RobotState state(scene->getRobotModel());
         state.setJointGroupPositions(joint_model_group, joint_values);
         scene->setCurrentState(state);
-        current_state = scene->getCurrentStateNonConst();
-        current_state.printStatePositions();
+        robot_state::RobotState& current_state =
+            scene->getCurrentStateNonConst();
+        //        current_state.printStatePositions();
         bool flag = scene->isStateValid(current_state, "manipulator");
-        ROS_INFO("isStateValid ? %s",
-                       flag ? "yes" : "no");
+        ROS_INFO("isStateValid ? %s", flag ? "yes" : "no");
 
-        collision_detection::AllowedCollisionMatrix acm =
-            scene->getAllowedCollisionMatrix();
-        acm.print(std::cout);
-        collision_detection::CollisionResult::ContactMap::const_iterator it2;
-        for (it2 = collision_result.contacts.begin();
-             it2 != collision_result.contacts.end(); ++it2) {
-          acm.setEntry(it2->first.first, it2->first.second, true);
-        }
-//        acm.print(std::cout);
-        collision_result.clear();
+        //        collision_detection::AllowedCollisionMatrix acm =
+        //            scene->getAllowedCollisionMatrix();
+        //        acm.print(std::cout);
+        //        collision_detection::CollisionResult::ContactMap::const_iterator
+        //        it2;
+        //        for (it2 = collision_result.contacts.begin();
+        //             it2 != collision_result.contacts.end(); ++it2) {
+        //          acm.setEntry(it2->first.first, it2->first.second, true);
+        //        }
+        ////        acm.print(std::cout);
+        //        collision_result.clear();
 
-//        robot_state::RobotState copied_state = planning_scene.getCurrentState();
-//        copied_state.printStatePositions();
+        ////        robot_state::RobotState copied_state =
+        /// planning_scene.getCurrentState();
+        ////        copied_state.printStatePositions();
 
-//        planning_scene.checkSelfCollision(collision_request, collision_result,
-//                                          copied_state, acm);
-//        ROS_INFO_STREAM("Test 6: Current state is "
-//                        << (collision_result.collision ? "in" : "not in")
-//                        << " self collision");
+        //        scene->checkSelfCollision(collision_request, collision_result,
+        //                                          current_state, acm);
+        //        ROS_INFO_STREAM("Test 6: Current state is "
+        //                        << (collision_result.collision ? "in" : "not
+        //                        in")
+        //                        << " self collision");
 
       } else {
         continue;
@@ -421,72 +436,6 @@ ROS_INFO("ObjectIds %s %s %s %s",ObjectIds[0].c_str(),ObjectIds[1].c_str(),Objec
       continue;
     }
   }
-  // move test
-  //  move_group.setStartState(*move_group.getCurrentState());
-  //  target_pose1.orientation.x = 0.5;
-  //  target_pose1.orientation.y = 0.5;
-  //  target_pose1.orientation.z = -0.5;
-  //  target_pose1.orientation.w = 0.5;
-  //  target_pose1.position.x = cabin_x + 0.1;
-  //  target_pose1.position.y = cabin_y - 0;
-  //  target_pose1.position.z = cabin_z + 0.4;
-  //  move_group.setPoseTarget(target_pose1);
-  ////  move_group.setPoseTarget(*move_group.getRandomPose());
-  //  success = (move_group.plan(my_plan) ==
-  //             moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
-  //  ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s",
-  //                 success ? "SUCCESSED" : "FAILED");
-  //  visual_tools.trigger();
-  //  visual_tools.prompt("Press 'next' to execute plan result");
-
-  //  if (success) {
-  //    move_group.execute(my_plan);
-  //  }
-
-  //  move_group.setStartState(*move_group.getCurrentState());
-  //  target_pose1.orientation.x = 0.5;
-  //  target_pose1.orientation.y = 0.5;
-  //  target_pose1.orientation.z = -0.5;
-  //  target_pose1.orientation.w = 0.5;
-  //  target_pose1.position.x = cabin_x   + 0.1;
-  //  target_pose1.position.y = cabin_y - 0;
-  //  target_pose1.position.z = cabin_z + 0.5;
-  //  move_group.setPoseTarget(target_pose1);
-  //  success = (move_group.plan(my_plan) ==
-  //             moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
-  //  ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s",
-  //                 success ? "SUCCESSED" : "FAILED");
-  //  visual_tools.trigger();
-  //  visual_tools.prompt("Press 'next' to execute plan result");
-
-  //  if (success) {
-  //    move_group.execute(my_plan);
-  //  }
-
-  //  move_group.setStartState(*move_group.getCurrentState());
-  //  target_pose1.orientation.x = 0.5;
-  //  target_pose1.orientation.y = 0.5;
-  //  target_pose1.orientation.z = -0.5;
-  //  target_pose1.orientation.w = 0.5;
-  //  target_pose1.position.x = cabin_x   + 0.1;
-  //  target_pose1.position.y = cabin_y - 0;
-  //  target_pose1.position.z = cabin_z + 0.8;
-  //  move_group.setPoseTarget(target_pose1);
-  //  success = (move_group.plan(my_plan) ==
-  //             moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
-  //  ROS_INFO_NAMED("tutorial", "Visualizing plan 1 (pose goal) %s",
-  //                 success ? "SUCCESSED" : "FAILED");
-  //  visual_tools.trigger();
-  //  visual_tools.prompt("Press 'next' to execute plan result");
-
-  //  if (success) {
-  //    move_group.execute(my_plan);
-  //  }
-
-  // END_TUTORIAL
 
   ros::shutdown();
   return 0;
