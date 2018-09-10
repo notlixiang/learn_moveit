@@ -388,15 +388,15 @@ ROS_INFO("ObjectIds %s %s %s %s",ObjectIds[0].c_str(),ObjectIds[1].c_str(),Objec
         robot_state::RobotState state(scene->getRobotModel());
         state.setJointGroupPositions(joint_model_group, joint_values);
         scene->setCurrentState(state);
-        current_state = planning_scene.getCurrentStateNonConst();
+        current_state = scene->getCurrentStateNonConst();
         current_state.printStatePositions();
         bool flag = scene->isStateValid(current_state, "manipulator");
         ROS_INFO("isStateValid ? %s",
                        flag ? "yes" : "no");
 
         collision_detection::AllowedCollisionMatrix acm =
-            planning_scene.getAllowedCollisionMatrix();
-//        acm.print(std::cout);
+            scene->getAllowedCollisionMatrix();
+        acm.print(std::cout);
         collision_detection::CollisionResult::ContactMap::const_iterator it2;
         for (it2 = collision_result.contacts.begin();
              it2 != collision_result.contacts.end(); ++it2) {
