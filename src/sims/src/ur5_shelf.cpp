@@ -374,6 +374,8 @@ int main(int argc, char** argv) {
 std::vector<std::string> ObjectIds=scene->getWorld()->getObjectIds();
 
 ROS_INFO("ObjectIds size   %ld",ObjectIds.size());
+ROS_INFO("ObjectIds %s %s %s %s",ObjectIds[0].c_str(),ObjectIds[1].c_str(),ObjectIds[2].c_str(),ObjectIds[3].c_str());
+
         robot_state::RobotState& current_state =
             planning_scene.getCurrentStateNonConst();
 
