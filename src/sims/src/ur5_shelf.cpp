@@ -38,6 +38,12 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+#include <moveit_msgs/CollisionObject.h>
+#include <sensor_msgs/JointState.h>
+//#include <moveit/move_group_interface/move_group.h>
+//#include <moveit/collision_detection/Collision.h>
+
 #include <eigen_conversions/eigen_msg.h>
 #include <moveit/kinematic_constraints/utils.h>
 
@@ -56,6 +62,20 @@
 #include <moveit_msgs/CollisionObject.h>
 
 #include <moveit_visual_tools/moveit_visual_tools.h>
+
+
+std::vector<std::string> joint_names;
+std::vector<double> joint_positions;
+
+void statesMessageReceived(const sensor_msgs::JointState current_state)
+{
+    joint_names.clear();
+    joint_positions.clear();
+    for(int i = 0; i < 19; i++){
+        joint_names.push_back(current_state.name[i]);
+        joint_positions.push_back(current_state.position[i]);
+    }
+}
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "move_group_interface_ur5");
@@ -84,7 +104,6 @@ int main(int argc, char** argv) {
   move_group.setPlanningTime(1);
   // move_group.setPlannerId("InformedRRTstarConfigDefault");
   // move_group.setPlannerId("RRTConnectkConfigDefault");
-
 
   // We will use the :planning_scene_interface:`PlanningSceneInterface`
   // class to add and remove collision objects in our "virtual world" scene
@@ -318,11 +337,18 @@ int main(int argc, char** argv) {
     move_group.execute(my_plan);
   }
 
+  planning_scene_monitor::PlanningSceneMonitorPtr monitor_ptr =
+      std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
+  monitor_ptr->requestPlanningSceneState("get_planning_scene");
+  planning_scene_monitor::LockedPlanningSceneRW ps(monitor_ptr);
+  ps->getCurrentStateNonConst().update();
+  planning_scene::PlanningScenePtr scene = ps->diff();
+  scene->decoupleParent();
 
   robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
   robot_model::RobotModelPtr kinematic_model = robot_model_loader.getModel();
   planning_scene::PlanningScene planning_scene(kinematic_model);
-  planning_scene.getCurrentStateUpdated();
+
   collision_detection::CollisionRequest collision_request;
   collision_detection::CollisionResult collision_result;
 
