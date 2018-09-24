@@ -360,7 +360,7 @@ int main(int argc, char** argv) {
 
   int ran_cnt = 0;
   int gen_cnt = 0;
-  while (true) {
+  for(int iter_main=0;iter_main<1000;iter_main++) {
     ROS_INFO("Randomzing...   %d", ran_cnt++);
     move_group.setStartState(*move_group.getCurrentState());
     move_group.setRandomTarget();
